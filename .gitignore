@@ -1,0 +1,19 @@
+# NEVER ignore .kiro/ — it is required for judging.
+# Build outputs
+*.o
+*.d
+*.elf
+*.self
+*.fake.self
+*.pkg
+build/
+dist/
+# Node
+node_modules/
+# Never commit Sony firmware or keys
+*.PUP
+PS3UPDAT*
+# OS / editor
+.DS_Store
+*.swp
+.env
