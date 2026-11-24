@@ -1,11 +1,18 @@
 import { startRibbons } from "../lib/wave";
+import { startScreens, shared } from "../lib/screens";
+import { watchPad, type PadAction } from "../lib/gamepad";
+import { blip, setSound, soundOn } from "../lib/sound";
 
 const $ = <T extends Element = HTMLElement>(s: string, r: ParentNode = document) => r.querySelector<T>(s)!;
 const $$ = <T extends Element = HTMLElement>(s: string, r: ParentNode = document) => [...r.querySelectorAll<T>(s)];
 
+/** Days until the store stops selling (it closes "by July 2027"; we count to 1 July). */
+const STORE_CLOSE = new Date(2027, 6, 1);
+const daysLeft = () => Math.max(0, Math.ceil((STORE_CLOSE.getTime() - Date.now()) / 86400000));
+
 export function initDashboard() {
-  const canvas = $<HTMLCanvasElement>("#ribbons");
-  startRibbons(canvas);
+  startRibbons($<HTMLCanvasElement>("#ribbons"));
+  startScreens();
   document.body.classList.add("js");
 
   const cats = $$(".cat");
@@ -13,27 +20,47 @@ export function initDashboard() {
   const sheet = $(".sheet");
   const body = $(".sheet-body");
   const panels = new Map($$("[data-panel]", sheet).map((p) => [p.dataset.panel!, p]));
+  const previews = new Map($$("[data-pv]").map((p) => [p.dataset.pv!, p]));
   const items = (ci: number) => $$<HTMLButtonElement>(".item", cats[ci]);
   const sel = cats.map(() => 0);
   let c = 0;
   let open: string | null = null;
   let stopDemo: (() => void) | null = null;
 
-  // Clock
+  // Clock + countdown
   const clock = $("[data-clock]");
   const tick = () => {
     const d = new Date();
     clock.textContent = d.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }) +
       "  " + d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+    const n = daysLeft().toString();
+    $$("[data-days], [data-countdown]").forEach((el) => (el.textContent = n));
   };
   tick(); setInterval(tick, 15000);
+
+  // Backdrop: crossfade the selected game's cover behind everything
+  const bds = $$<HTMLImageElement>("[data-bd-layer]");
+  let bdFront = 0, bdSrc = "";
+  function backdrop(src: string, full: boolean) {
+    if (src === bdSrc) return;
+    bdSrc = src;
+    const next = bds[1 - bdFront];
+    if (src) { next.src = src; next.classList.toggle("full", full); next.classList.add("on"); }
+    bds[bdFront].classList.remove("on");
+    if (src) bdFront = 1 - bdFront;
+    document.body.classList.toggle("has-bd", !!src);
+    document.body.classList.toggle("bd-full", !!src && full);
+  }
 
   const small = matchMedia("(max-width: 640px)");
   function layout(focus = false) {
     const H = small.matches ? 58 : 66;
     const first = small.matches ? 92 : 118;
-    const gap = small.matches ? 16 : 22;
+    const gap = small.matches ? 34 : 22;
+    const rowTop = row.getBoundingClientRect().top;
+    const room = Math.max(2, Math.floor((innerHeight - rowTop - first - H - gap - 70) / H) + 1);
     row.style.setProperty("--c", String(c));
+    document.body.dataset.cat = cats[c].dataset.catId;
     cats.forEach((cat, ci) => {
       const active = ci === c;
       cat.classList.toggle("active", active);
@@ -45,15 +72,21 @@ export function initDashboard() {
         it.parentElement!.style.transform = `translateY(${y}px)`;
         it.classList.toggle("sel", j === s);
         it.classList.toggle("past", j < s);
+        it.classList.toggle("far", j < s - 2 || j > s + room);
         it.tabIndex = active && j === s ? 0 : -1;
       });
     });
-    if (focus) items(c)[sel[c]]?.focus({ preventScroll: true });
+    const cur = items(c)[sel[c]];
+    previews.forEach((p, id) => p.classList.toggle("on", id === cur.dataset.item));
+    backdrop(cur.dataset.bd ?? "", cur.dataset.bdFull === "1");
+    if (focus) cur?.focus({ preventScroll: true });
   }
 
   function move(dc: number, di: number) {
+    const pc = c, pi = sel[c];
     if (dc) c = Math.max(0, Math.min(cats.length - 1, c + dc));
     if (di) sel[c] = Math.max(0, Math.min(items(c).length - 1, sel[c] + di));
+    blip(c !== pc ? "cat" : sel[c] !== pi ? "move" : "edge");
     layout(true);
   }
 
@@ -62,6 +95,7 @@ export function initDashboard() {
     if (!p) return;
     panels.forEach((el) => (el.hidden = el !== p));
     open = id;
+    blip("open");
     document.body.classList.add("open");
     body.scrollTop = 0;
     history.replaceState(null, "", "#" + id);
@@ -74,6 +108,7 @@ export function initDashboard() {
   function closePanel() {
     if (!open) return;
     open = null;
+    blip("close");
     stopDemo?.(); stopDemo = null;
     document.body.classList.remove("open");
     history.replaceState(null, "", location.pathname);
@@ -82,19 +117,21 @@ export function initDashboard() {
 
   // Pointer
   cats.forEach((cat, ci) => {
-    $(".cat-btn", cat).addEventListener("click", () => { c = ci; layout(true); });
+    $(".cat-btn", cat).addEventListener("click", () => { if (c !== ci) blip("cat"); c = ci; layout(true); });
     items(ci).forEach((it, j) => it.addEventListener("click", () => {
       if (c === ci && sel[ci] === j) openPanel(it.dataset.item!);
-      else { c = ci; sel[ci] = j; layout(true); }
+      else { c = ci; sel[ci] = j; blip("move"); layout(true); }
     }));
   });
+  $$("[data-pv]").forEach((p) => p.addEventListener("click", () => openPanel(p.dataset.pv!)));
   $("[data-close]").addEventListener("click", closePanel);
 
   // Keyboard
   document.addEventListener("keydown", (e) => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const typing = (e.target as HTMLElement).matches("input,textarea");
     if (open) {
-      if (e.key === "Escape" || (e.key === "Backspace" && !(e.target as HTMLElement).matches("input,textarea"))) { e.preventDefault(); closePanel(); }
+      if (e.key === "Escape" || (e.key === "Backspace" && !typing)) { e.preventDefault(); closePanel(); }
       return;
     }
     const k: Record<string, () => void> = {
@@ -104,6 +141,25 @@ export function initDashboard() {
     };
     if (k[e.key]) { e.preventDefault(); k[e.key](); }
   });
+
+  // Controller
+  const padInd = $("[data-pad-ind]");
+  watchPad((a: PadAction) => {
+    if (open) {
+      if (a === "back") closePanel();
+      if (a === "up" || a === "down") body.scrollBy({ top: a === "down" ? 160 : -160, behavior: "smooth" });
+      return;
+    }
+    if (a === "left") move(-1, 0); else if (a === "right") move(1, 0);
+    else if (a === "up") move(0, -1); else if (a === "down") move(0, 1);
+    else if (a === "confirm") openPanel(items(c)[sel[c]].dataset.item!);
+  }, (on) => { padInd.hidden = !on; document.body.classList.toggle("pad", on); });
+
+  // Sound toggle
+  const snd = $("[data-sound]");
+  const syncSnd = () => { snd.setAttribute("aria-pressed", String(soundOn())); snd.classList.toggle("is-on", soundOn()); };
+  snd.addEventListener("click", () => { setSound(!soundOn()); syncSnd(); });
+  syncSnd();
 
   // Wheel and touch
   let wheelAt = 0;
@@ -129,9 +185,38 @@ export function initDashboard() {
 
   small.addEventListener("change", () => layout());
 
+  // "Raise your own" prompt builder
+  const yin = $<HTMLInputElement>("[data-yours-input]");
+  const yout = $("[data-yours-out]");
+  const build = () => {
+    const s = yin.value.trim() || "A speedrun timer with splits";
+    shared.sentence = s;
+    const name = s.toLowerCase().replace(/[^a-z0-9 ]/g, "").split(" ").filter(Boolean).slice(0, 2).join("-") || "my-app";
+    yout.textContent =
+`Create a new Necrocell app in apps/${name}/ from the template.
+The app: "${s}"
+
+1. Write the spec first (requirements, design, tasks) in .kiro/specs/${name}/.
+2. Follow the steering: nc_gfx for all drawing, nc_log for logs, no invented APIs.
+3. Build and test with the SDL backend, then RPCS3.
+4. Deploy to the console with necrocell-mcp and show me the logs.`;
+  };
+  yin.addEventListener("input", build);
+  build();
+  $("[data-copy]").addEventListener("click", async (e) => {
+    const b = e.currentTarget as HTMLButtonElement;
+    try { await navigator.clipboard.writeText(yout.textContent ?? ""); b.textContent = "Copied"; }
+    catch { b.textContent = "Select and copy"; }
+    setTimeout(() => (b.textContent = "Copy"), 1600);
+  });
+
   // Deep link
   const hash = decodeURIComponent(location.hash.slice(1));
-  if (hash && panels.has(hash)) {
+  const pre = new URLSearchParams(location.search).get("sel");
+  if (pre && panels.has(pre) && !hash) {
+    cats.forEach((_, ci) => items(ci).forEach((it, j) => { if (it.dataset.item === pre) { c = ci; sel[ci] = j; } }));
+    layout(true);
+  } else if (hash && panels.has(hash)) {
     cats.forEach((_, ci) => items(ci).forEach((it, j) => { if (it.dataset.item === hash) { c = ci; sel[ci] = j; } }));
     layout();
     openPanel(hash);
@@ -141,7 +226,7 @@ export function initDashboard() {
 
 /** Simulated Vitals readings: a slow heat cycle that crosses the warning line, so every state is visible. */
 function vitalsDemo(p: HTMLElement): () => void {
-  const cv = p.querySelector<HTMLCanvasElement>("canvas")!;
+  const cv = p.querySelector<HTMLCanvasElement>("canvas.spark")!;
   const ctx = cv.getContext("2d")!;
   const box = p.querySelector<HTMLElement>("[data-vitals]")!;
   const v = (k: string) => p.querySelector<HTMLElement>(`[data-v="${k}"]`)!;
@@ -168,7 +253,7 @@ function vitalsDemo(p: HTMLElement): () => void {
       ctx.stroke();
     });
   };
-  for (let i = 0; i < 60; i++) step();
+  for (let i = 0; i < 120; i++) step();
   const id = setInterval(step, 250);
   return () => clearInterval(id);
 }

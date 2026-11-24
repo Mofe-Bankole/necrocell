@@ -9,3 +9,4 @@ inclusion: always
 - Visual identity is our own: the **ember wave** (amber #FF8C00 → violet #2A0A3A), our own icons, and an open-licence font (OFL/CC0 only, with the licence file committed alongside).
 - Audio: original or CC0 only.
 - Any new asset needs its source and licence noted in `ASSETS.md`.
+- **Exception (owner decision, 2026-11-24):** the site's "Worth saving" panels may show publisher cover art from `site/public/covers/`, credited as homage. It is gated by `SHOW_COVERS` in `site/src/data/covers.ts`. Never use cover art anywhere else (hero, icons, app UI, video graphics). Do not remove the switch.

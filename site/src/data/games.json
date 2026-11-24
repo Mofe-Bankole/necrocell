@@ -7,6 +7,27 @@
     "verify": true
   },
   {
+    "title": "Folklore",
+    "year": 2007,
+    "developer": "Game Republic",
+    "why": "A dreamlike action RPG set between an Irish village and the land of the dead, and one of the console's most overlooked exclusives.",
+    "verify": true
+  },
+  {
+    "title": "Heavenly Sword",
+    "year": 2007,
+    "developer": "Ninja Theory",
+    "why": "A cinematic action game whose performance capture was directed by Andy Serkis. It remains a PS3 exclusive.",
+    "verify": true
+  },
+  {
+    "title": "Ratchet & Clank Future: Tools of Destruction",
+    "year": 2007,
+    "developer": "Insomniac Games",
+    "why": "A bright, inventive platform shooter that brought the series into HD. It has never had a native re-release.",
+    "verify": true
+  },
+  {
     "title": "LittleBigPlanet",
     "year": 2008,
     "developer": "Media Molecule",
@@ -19,7 +40,8 @@
     "year": 2008,
     "developer": "Kojima Productions",
     "why": "A console-exclusive that leaned on Blu-ray capacity and the Cell processor for a cinematic finale to a landmark series.",
-    "verify": true
+    "verify": true,
+    "lost": "Metal Gear Online, its multiplayer mode, shut down in 2012 (verify)"
   },
   {
     "title": "Demon's Souls",
@@ -30,10 +52,89 @@
     "verify": true
   },
   {
+    "title": "Flower",
+    "year": 2009,
+    "developer": "thatgamecompany",
+    "why": "You play as the wind carrying petals: a short, calming game that helped make the case for games as art.",
+    "verify": true
+  },
+  {
+    "title": "Killzone 2",
+    "year": 2009,
+    "developer": "Guerrilla Games",
+    "why": "Its heavy, atmospheric shooting made it a technical showcase for the Cell, and it was never remastered.",
+    "verify": true
+  },
+  {
+    "title": "Uncharted 2: Among Thieves",
+    "year": 2009,
+    "developer": "Naughty Dog",
+    "why": "It set the bar for cinematic action games and is widely called one of the best games of its generation.",
+    "verify": true
+  },
+  {
+    "title": "inFamous",
+    "year": 2009,
+    "developer": "Sucker Punch Productions",
+    "why": "An open-world superhero game where your moral choices reshaped both your powers and the city.",
+    "verify": true
+  },
+  {
+    "title": "God of War III",
+    "year": 2010,
+    "developer": "SCE Santa Monica Studio",
+    "why": "The trilogy's huge, brutal finale, famous for its sense of scale.",
+    "verify": true
+  },
+  {
+    "title": "Gran Turismo 5",
+    "year": 2010,
+    "developer": "Polyphony Digital",
+    "why": "The series' giant PS3 entry, with more than 1,000 cars, and one of the console's best-selling games.",
+    "verify": true,
+    "lost": "Online features shut down in 2014 (verify)"
+  },
+  {
+    "title": "Heavy Rain",
+    "year": 2010,
+    "developer": "Quantic Dream",
+    "why": "An interactive drama where any of the four main characters can die and the story carries on without them.",
+    "verify": true
+  },
+  {
+    "title": "MAG",
+    "year": 2010,
+    "developer": "Zipper Interactive",
+    "why": "Online battles for up to 256 players on one map, a record for a console shooter.",
+    "verify": true,
+    "lost": "Online-only: when its servers shut down in 2014, the whole game became unplayable (verify)"
+  },
+  {
+    "title": "Ni no Kuni: Wrath of the White Witch",
+    "year": 2011,
+    "developer": "Level-5",
+    "why": "A storybook RPG with animation by Studio Ghibli and music by Joe Hisaishi.",
+    "verify": true
+  },
+  {
     "title": "Journey",
     "year": 2012,
     "developer": "thatgamecompany",
     "why": "A short, wordless game that proved games could be art, and a milestone for indie digital distribution.",
+    "verify": true
+  },
+  {
+    "title": "Tokyo Jungle",
+    "year": 2012,
+    "developer": "Crispy's! / Japan Studio",
+    "why": "A survival game about animals in a deserted Tokyo: strange, funny, and only ever released on this console.",
+    "verify": true
+  },
+  {
+    "title": "Puppeteer",
+    "year": 2013,
+    "developer": "SCE Japan Studio",
+    "why": "A puppet-theatre platformer where every level plays out on a stage. It was never re-released.",
     "verify": true
   },
   {

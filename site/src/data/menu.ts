@@ -1,5 +1,6 @@
 import games from "./games.json";
 import { slug } from "../lib/art";
+import { coverFor, backdropFor } from "./covers";
 
 /** Original line icons, 24×24 grid, stroked with currentColor. */
 export const ICONS: Record<string, string> = {
@@ -20,37 +21,70 @@ export const ICONS: Record<string, string> = {
   heart: "M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0112 7.3 4.3 4.3 0 0119.5 10c0 5.4-7.5 10-7.5 10z",
   people: "M9 11a3 3 0 100-6 3 3 0 000 6z M3.5 19a5.5 5.5 0 0111 0 M16 11a2.5 2.5 0 100-5 M17 14.2a4.8 4.8 0 013.5 4.8",
   doc: "M6 3h8l4 4v14H6z M14 3v4h4 M9 12h6 M9 16h6",
+  apps: "M4 4h6.5v6.5H4z M13.5 4H20v6.5h-6.5z M4 13.5h6.5V20H4z M16.75 13.5v6.5 M13.5 16.75H20",
+  pad: "M7 8h10a4.5 4.5 0 014.3 5.8l-1.2 3.9a2 2 0 01-3.5.6L14.8 16H9.2l-1.8 2.3a2 2 0 01-3.5-.6l-1.2-3.9A4.5 4.5 0 017 8z M7.5 11v3 M6 12.5h3 M15.5 11.5v.01 M17.5 13.5v.01",
+  flame: "M12 21a6 6 0 006-6c0-3.5-2.5-5.5-3.5-8.5-1 2-2 3-3.5 3.5C11 7 10 5 8.5 3.5 8 7 6 9.5 6 15a6 6 0 006 6z M12 21a2.5 2.5 0 002.5-2.5c0-1.6-1.2-2.4-2.5-4-1.3 1.6-2.5 2.4-2.5 4A2.5 2.5 0 0012 21z",
+  sound: "M4 9.5h3.5L12 6v12l-4.5-3.5H4z M15.5 9a4 4 0 010 6 M18 6.5a7.5 7.5 0 010 11",
+  mute: "M4 9.5h3.5L12 6v12l-4.5-3.5H4z M16 9.5l5 5 M21 9.5l-5 5",
 };
 
-export interface Item { id: string; title: string; sub: string; icon: string }
+export type Preview =
+  | { kind: "screen"; app: string; caption: string }
+  | { kind: "cover" }
+  | { kind: "stat"; big: string; small: string }
+  | { kind: "code"; lang: string; text: string };
+
+export interface Item {
+  id: string; title: string; sub: string; icon: string;
+  cover?: string; backdrop?: string; status?: "building" | "next" | "sample" | "you"; preview?: Preview;
+}
 export interface Category { id: string; label: string; icon: string; items: Item[] }
+
+export const STATUS_LABEL = { building: "Building", next: "Next up", sample: "Template sample", you: "Your turn" } as const;
 
 export const MENU: Category[] = [
   { id: "kit", label: "Necrocell", icon: "cell", items: [
-    { id: "raise", title: "Raise the dead.", sub: "Console homebrew, made reliable by Kiro", icon: "spark" },
-    { id: "pipeline", title: "Sentence to screen", sub: "From one prompt to an app on the TV", icon: "flow" },
-    { id: "hood", title: "Under the hood", sub: "The real .kiro steering behind it", icon: "code" },
-    { id: "start", title: "Get started", sub: "Build the template in four commands", icon: "term" },
+    { id: "raise", title: "Raise the dead.", sub: "Console homebrew, made reliable by Kiro", icon: "spark",
+      preview: { kind: "screen", app: "boot", caption: "Every Necrocell app opens on the ember wave" } },
+    { id: "pipeline", title: "Sentence to screen", sub: "From one prompt to an app on the TV", icon: "flow",
+      preview: { kind: "screen", app: "pipeline", caption: "One sentence in, a running app out" } },
+    { id: "hood", title: "Under the hood", sub: "The real .kiro steering behind it", icon: "code",
+      preview: { kind: "code", lang: ".kiro/steering/ps3-platform.md", text: "- Grep the headers. Never invent an API.\n- Data on the wire is big-endian.\n- Draw only through nc_gfx.\n- Never block the main loop.\n- Exit cleanly, every time.\n- Test order: SDL → RPCS3 → console." } },
+    { id: "start", title: "Get started", sub: "Build the template in four commands", icon: "term",
+      preview: { kind: "code", lang: "terminal", text: "$ git clone …/necrocell\n$ docker run … hldtux/ps3dev make\n$ make -f Makefile.sdl run\n$ rpcs3 --no-gui hello.self" } },
   ]},
-  { id: "vitals", label: "Vitals", icon: "thermo", items: [
-    { id: "vitals-live", title: "Temperature & fan", sub: "Live readouts for an aging console", icon: "gauge" },
-    { id: "vitals-how", title: "How it reads sensors", sub: "Syscall first, webMAN fallback", icon: "chip" },
-  ]},
-  { id: "ark", label: "Ark", icon: "ark", items: [
-    { id: "ark-backup", title: "Back up your saves", sub: "Copy your own saves to your PC over Wi-Fi", icon: "shield" },
-    { id: "ark-limit", title: "What Ark won't do", sub: "Its limits, stated plainly", icon: "warn" },
+  { id: "apps", label: "Apps", icon: "apps", items: [
+    { id: "app-vitals", title: "Vitals", sub: "Temperatures and fan health, before it's too late", icon: "thermo", status: "building",
+      preview: { kind: "screen", app: "vitals", caption: "Vitals on the TV · mockup" } },
+    { id: "app-ark", title: "Ark", sub: "Back up your own saves to your PC over Wi-Fi", icon: "ark", status: "building",
+      preview: { kind: "screen", app: "ark", caption: "Ark on the TV · mockup" } },
+    { id: "app-grip", title: "Grip", sub: "Test every button and stick, live", icon: "pad", status: "next",
+      preview: { kind: "screen", app: "grip", caption: "Grip on the TV · mockup" } },
+    { id: "app-hearth", title: "Hearth", sub: "A clock for the TV that glows with the time of day", icon: "flame", status: "next",
+      preview: { kind: "screen", app: "hearth", caption: "Hearth on the TV · mockup" } },
+    { id: "app-hello", title: "Hello, Cell", sub: "The smallest Necrocell app: 30 lines of C", icon: "code", status: "sample",
+      preview: { kind: "screen", app: "hello", caption: "The hello sample · mockup" } },
+    { id: "app-yours", title: "Raise your own", sub: "Describe an app in one sentence", icon: "spark", status: "you",
+      preview: { kind: "screen", app: "yours", caption: "Your idea, on the TV" } },
   ]},
   { id: "saves", label: "Worth saving", icon: "disc", items: games.map((g) => ({
     id: "game-" + slug(g.title), title: g.title, sub: `${g.year} · ${g.developer}`, icon: "disc",
+    cover: coverFor(g.title), backdrop: backdropFor(g.title), preview: { kind: "cover" as const },
   }))},
   { id: "why", label: "Why now", icon: "hourglass", items: [
-    { id: "why-87m", title: "About 87 million consoles", sub: "Many still running, all getting older", icon: "chip" },
-    { id: "why-store", title: "The store closes", sub: "New purchases end by July 2027", icon: "hourglass" },
-    { id: "why-cell", title: "The Cell", sub: "Brilliant, and famously hard to program", icon: "cell" },
-    { id: "why-us", title: "Why we care", sub: "A console bought in its final year", icon: "heart" },
+    { id: "why-87m", title: "About 87 million consoles", sub: "Many still running, all getting older", icon: "chip",
+      preview: { kind: "stat", big: "~87M", small: "consoles sold, 2006–2017" } },
+    { id: "why-store", title: "The store closes", sub: "New purchases end by July 2027", icon: "hourglass",
+      preview: { kind: "stat", big: "countdown", small: "until new purchases end (by July 2027)" } },
+    { id: "why-cell", title: "The Cell", sub: "Brilliant, and famously hard to program", icon: "cell",
+      preview: { kind: "stat", big: "1 + 8", small: "one PowerPC core, eight vector units" } },
+    { id: "why-us", title: "Why we care", sub: "A console bought in its final year", icon: "heart",
+      preview: { kind: "stat", big: "2017", small: "the year production ended, and the year it came home" } },
   ]},
   { id: "about", label: "About", icon: "info", items: [
-    { id: "team", title: "The crew", sub: "Mofe Bankole & Steven", icon: "people" },
-    { id: "legal", title: "Licence & notice", sub: "MIT. Not affiliated with Sony.", icon: "doc" },
+    { id: "team", title: "The crew", sub: "Mofe Bankole & Steven", icon: "people",
+      preview: { kind: "stat", big: "2", small: "people, one Kiro, one aging console" } },
+    { id: "legal", title: "Licence & notice", sub: "MIT. Not affiliated with Sony.", icon: "doc",
+      preview: { kind: "stat", big: "MIT", small: "open source, fork it freely" } },
   ]},
 ];

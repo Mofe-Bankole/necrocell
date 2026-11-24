@@ -45,7 +45,7 @@ export function startRibbons(canvas: HTMLCanvasElement): () => void {
     canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     embers.length = 0;
-    const n = Math.round(Math.min(60, w / 24));
+    const n = Math.round(Math.min(170, w / 8.5));
     for (let i = 0; i < n; i++) embers.push(spawn(true));
   };
   const spawn = (anywhere: boolean): Ember => ({

@@ -31,3 +31,13 @@
 - [ ] **T22** (Req 11) Replace the long-scroll page with the console dashboard shell + detail panels.
 - [ ] **T23** (Req 1) Ribbon wave: thin additive strands + rising embers, replacing the solid bands.
 - [ ] **T24** Fix invented content: Cell = 1 PPE + 8 SPEs (7 enabled, 6 for games); remove the fabricated "temperature sensor" founder line.
+
+## v3 2026-11-24 (Claude Code, "go all out")
+- [x] **T25** Apps category replaces Vitals/Ark categories: Vitals, Ark (building), Grip, Hearth (next up), Hello, Cell (sample), Raise your own (prompt builder).
+- [x] **T26** Live preview pane on wide screens: animated TV mockups per app (src/lib/screens.ts), cover cards, stats, code cards.
+- [x] **T27** Per-game blurred cover backdrop; per-category tint.
+- [x] **T28** Store-closure countdown (to 1 July 2027) in the top bar and the Why now panel.
+- [x] **T29** Gamepad API navigation (d-pad/stick, confirm/back) + Grip mockup reads a real controller.
+- [x] **T30** Optional synthesised UI sounds (WebAudio, off by default).
+- [x] **T31** `?sel=<id>` selects an item without opening it (shareable, screenshot-friendly).
+- [ ] **T32** Verify sources for every fact (87M, store date, server shutdowns) and add footnotes.

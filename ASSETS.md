@@ -28,3 +28,9 @@ Canvas 2D implementation, original. No third-party assets. Licence: MIT (this pr
 ## Dashboard icons (site/src/data/menu.ts)
 
 Original line icons, hand-authored for Necrocell. Licence: MIT (this project).
+
+## Game cover art (site/public/covers/) — third-party, optional
+Twenty low-resolution covers taken from their English Wikipedia articles (non-free, publisher copyright), converted to WebP. They are shown only in the "Worth saving" panels, credited as homage, and gated by `SHOW_COVERS` in `site/src/data/covers.ts`. **Kiroween rules disqualify third-party trademarks: set it to `false` before submitting if in doubt.**
+
+## Game backdrops (site/public/backdrops/) — third-party, optional
+Full-screen 16:9 images (ideally 1920×1080) shown behind the dashboard when a game is selected, and in that game's panel. Same `SHOW_COVERS` switch and same disqualification caveat as the covers. Record each file's source below when added.

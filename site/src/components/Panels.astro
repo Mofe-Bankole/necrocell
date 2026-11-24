@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import games from "../data/games.json";
 import { emberArt, slug } from "../lib/art";
+import { coverFor, backdropFor } from "../data/covers";
 
 const repo = "https://github.com/Mofe-Bankole/necrocell";
 const kiroDir = path.resolve(process.cwd(), "../.kiro");
@@ -11,6 +12,27 @@ const steering = ["product.md", "ps3-platform.md", "build-deploy.md", "trademark
   .map((f) => ({ f, body: read("steering/" + f).split("\n").slice(0, 28).join("\n") }))
   .filter((s) => s.body);
 const specs = (() => { try { return fs.readdirSync(path.join(kiroDir, "specs")); } catch { return []; } })();
+const HELLO_C = `#include <nc/app.h>
+
+static float x = -200, t = 0;
+
+void app_init(void) { nc_log(NC_INFO, "hello: up"); }
+
+void app_update(float dt, const nc_input *in) {
+    t += dt;
+    x += 240 * dt;
+    if (x > 1280) x = -200;
+    if (nc_pressed(in, NC_CONFIRM)) nc_log(NC_INFO, "confirm");
+}
+
+void app_draw(nc_gfx *g) {
+    nc_gfx_clear(g, 0x0B0710FF);
+    nc_gfx_wave(g, t);                     /* the ember wave */
+    nc_gfx_text(g, 80, 180, 80, "Hello, Cell", 0xEDE6DAFF);
+    nc_gfx_rect(g, (int)x, 320, 200, 120, 0xFF8C00FF);
+}
+
+void app_shutdown(void) { nc_log(NC_INFO, "hello: bye"); }`;
 ---
 <!-- Necrocell -->
 <article class="panel" data-panel="raise" aria-labelledby="h-raise">
@@ -38,6 +60,7 @@ const specs = (() => { try { return fs.readdirSync(path.join(kiroDir, "specs"));
     <li><b>It deploys.</b><span>necrocell-mcp packages the app and sends it to the console over the LAN.</span></li>
     <li><b>It runs on the TV.</b><span>Logs stream back to Kiro, so it can fix what broke.</span></li>
   </ol>
+  <div class="tv big"><canvas data-screen="pipeline" aria-label="Animation of the pipeline"></canvas></div>
   <p class="note">Measured timings for each step will be published with our benchmark.</p>
 </article>
 
@@ -66,11 +89,11 @@ rpcs3 --no-gui apps/hello/build/hello.self</code></pre>
   <p class="note">The template is being built this week; paths may still change. RPCS3 needs the console's system software: download it only from <a href="https://www.playstation.com/en-us/support/hardware/ps3/system-software/">Sony's official page</a>. We never ship it.</p>
 </article>
 
-<!-- Vitals -->
-<article class="panel" data-panel="vitals-live" aria-labelledby="h-vl">
-  <p class="eyebrow">App 1 · Vitals</p>
-  <h2 id="h-vl">Temperature &amp; fan.</h2>
-  <p>Old consoles die of heat: dried thermal paste, dusty fans. Vitals shows the CPU and GPU temperatures and fan speed, and warns you before it's too late.</p>
+<!-- Apps -->
+<article class="panel app" data-panel="app-vitals" aria-labelledby="h-vitals">
+  <p class="eyebrow">App · Vitals <span class="chip building">Building</span></p>
+  <h2 id="h-vitals">Vitals.</h2>
+  <p class="lede">Old consoles die of heat: dried thermal paste, dusty fans. Vitals shows CPU and GPU temperatures and fan speed, and warns you before it's too late.</p>
   <div class="vitals" data-vitals>
     <div class="readouts">
       <div class="ro"><span>CPU</span><b data-v="cpu">--</b><em>°C</em></div>
@@ -80,24 +103,20 @@ rpcs3 --no-gui apps/hello/build/hello.self</code></pre>
     <canvas class="spark" width="560" height="140" aria-label="Temperature history graph"></canvas>
     <p class="status" data-v="status" role="status">Warming up…</p>
   </div>
-  <p class="tag">Simulated readings. A recording from real hardware replaces this once our console is back from repair.</p>
-</article>
-
-<article class="panel" data-panel="vitals-how" aria-labelledby="h-vh">
-  <p class="eyebrow">App 1 · Vitals</p>
-  <h2 id="h-vh">How it reads sensors.</h2>
+    <p class="tag">Simulated readings. A recording from real hardware replaces this once our console is back from repair.</p>
+  <div class="tv big"><canvas data-screen="vitals" aria-label="Mockup of Vitals on a TV"></canvas></div>
+  <h3 class="sub">How it reads sensors</h3>
   <ul class="list">
-    <li><b>First choice:</b> read the temperatures directly on the console through a system call available on homebrew-enabled firmware.</li>
+    <li><b>First choice:</b> read the temperatures on the console through a system call available on homebrew-enabled firmware.</li>
     <li><b>Fallback:</b> ask webMAN MOD's local web interface, which many homebrew users already run.</li>
     <li><b>Never:</b> change fan curves or firmware settings. Vitals only reads.</li>
   </ul>
 </article>
 
-<!-- Ark -->
-<article class="panel" data-panel="ark-backup" aria-labelledby="h-ab">
-  <p class="eyebrow">App 2 · Ark</p>
-  <h2 id="h-ab">Back up your saves.</h2>
-  <p>Hard drives in these consoles are 15+ years old. Ark copies your own save files to your PC over Wi-Fi, so a dead drive doesn't take years of progress with it.</p>
+<article class="panel app" data-panel="app-ark" aria-labelledby="h-ark">
+  <p class="eyebrow">App · Ark <span class="chip building">Building</span></p>
+  <h2 id="h-ark">Ark.</h2>
+  <p class="lede">Hard drives in these consoles are 15+ years old. Ark copies your own save files to your PC over Wi-Fi, so a dead drive doesn't take years of progress with it.</p>
   <div class="ark" data-ark>
     <ul>
       {["Campaign save · Chapter 7", "Profile & settings", "Creative levels (12)", "Second playthrough", "Arcade high scores"].map((s, i) => (
@@ -106,12 +125,9 @@ rpcs3 --no-gui apps/hello/build/hello.self</code></pre>
     </ul>
     <button class="btn primary" type="button" data-ark-go>Back up all</button>
   </div>
-  <p class="tag">Simulated. The real app runs on the console and sends to a small receiver on your PC.</p>
-</article>
-
-<article class="panel" data-panel="ark-limit" aria-labelledby="h-al">
-  <p class="eyebrow">App 2 · Ark</p>
-  <h2 id="h-al">What Ark won't do.</h2>
+    <p class="tag">Simulated. The real app runs on the console and sends to a small receiver on your PC.</p>
+  <div class="tv big"><canvas data-screen="ark" aria-label="Mockup of Ark on a TV"></canvas></div>
+  <h3 class="sub">What Ark won't do</h3>
   <ul class="list">
     <li>It backs up <b>your own saves</b>, from <b>your own console and account</b>.</li>
     <li>It does <b>not</b> copy games, unlock protected saves, or move saves between accounts.</li>
@@ -119,16 +135,66 @@ rpcs3 --no-gui apps/hello/build/hello.self</code></pre>
   </ul>
 </article>
 
+<article class="panel app" data-panel="app-grip" aria-labelledby="h-grip">
+  <p class="eyebrow">App · Grip <span class="chip next">Next up</span></p>
+  <h2 id="h-grip">Grip.</h2>
+  <p class="lede">A controller tester for second-hand consoles: every button, trigger and stick, live, with drift shown as numbers.</p>
+  <div class="tv big"><canvas data-screen="grip" aria-label="Mockup of Grip on a TV"></canvas></div>
+  <p class="tag">Plug a controller into this computer and press anything: the mockup above reads it live.</p>
+  <h3 class="sub">The one sentence</h3>
+  <blockquote class="prompt">"Show every button and both sticks of the controller live, and flag stick drift above 10%."</blockquote>
+  <p>Grip is the app we plan to raise <b>live in our demo video</b>: typed into Kiro, built and deployed to the TV on camera.</p>
+</article>
+
+<article class="panel app" data-panel="app-hearth" aria-labelledby="h-hearth">
+  <p class="eyebrow">App · Hearth <span class="chip next">Next up</span></p>
+  <h2 id="h-hearth">Hearth.</h2>
+  <p class="lede">Turns an idle console into a living-room clock. The ember wave warms at dawn and cools to violet at night, and it drifts slowly so the screen never burns in.</p>
+  <div class="tv big"><canvas data-screen="hearth" aria-label="Mockup of Hearth on a TV"></canvas></div>
+  <h3 class="sub">The one sentence</h3>
+  <blockquote class="prompt">"A full-screen clock over the ember wave whose colours follow the time of day, with slow drift to protect the screen."</blockquote>
+</article>
+
+<article class="panel app" data-panel="app-hello" aria-labelledby="h-hello">
+  <p class="eyebrow">App · Hello, Cell <span class="chip sample">Template sample</span></p>
+  <h2 id="h-hello">Hello, Cell.</h2>
+  <p class="lede">The smallest Necrocell app. Four hooks, no platform code: the same file builds for the console, the emulator and a Linux window.</p>
+  <div class="tv big"><canvas data-screen="hello" aria-label="Mockup of the hello sample on a TV"></canvas></div>
+  <pre class="term code"><code>{HELLO_C}</code></pre>
+  <p class="note">API preview: final names follow the template spec as it's implemented.</p>
+</article>
+
+<article class="panel app" data-panel="app-yours" aria-labelledby="h-yours">
+  <p class="eyebrow">App · Your turn</p>
+  <h2 id="h-yours">Raise your own.</h2>
+  <p class="lede">Describe a console app in one sentence. We'll turn it into the exact prompt to give Kiro inside the Necrocell repo.</p>
+  <label class="field">
+    <span>Your app, in one sentence</span>
+    <input type="text" maxlength="120" data-yours-input value="A speedrun timer with splits" />
+  </label>
+  <div class="tv big"><canvas data-screen="yours" aria-label="Your app idea on a TV"></canvas></div>
+  <div class="out">
+    <div class="out-bar"><span>Prompt for Kiro</span><button type="button" class="copy" data-copy>Copy</button></div>
+    <pre data-yours-out></pre>
+  </div>
+</article>
+
 <!-- Worth saving -->
 {games.map((g) => (
   <article class="panel game" data-panel={"game-" + slug(g.title)} aria-labelledby={"h-" + slug(g.title)}>
-    <div class="art" set:html={emberArt(g.title)} />
+    {coverFor(g.title) ? (
+      <div class={backdropFor(g.title) ? "art has-cover has-shot" : "art has-cover"}>
+        <img class="blur" src={backdropFor(g.title) ?? coverFor(g.title)} alt="" aria-hidden="true" />
+        <div class="ribbons" set:html={emberArt(g.title)} />
+        <img class="cover" src={coverFor(g.title)} alt={`${g.title} cover art`} loading="lazy" />
+      </div>
+    ) : <div class="art" set:html={emberArt(g.title)} />}
     <p class="eyebrow">Worth saving · {g.year}</p>
     <h2 id={"h-" + slug(g.title)}>{g.title}</h2>
     <p class="meta">{g.developer}</p>
     <p class="lede">{g.why}</p>
     {g.lost && <p class="lost"><b>Already lost:</b> {g.lost.replace(/\s*\((verify[^)]*)\)/i, "")}</p>}
-    <p class="note">Necrocell keeps the hardware alive and your saves safe. Artwork is our own, generated from the title.</p>
+    <p class="note">Necrocell keeps the hardware alive and your saves safe.{coverFor(g.title) ? " Cover art © its publisher, shown as homage." : " Artwork is our own, generated from the title."}</p>
   </article>
 ))}
 
@@ -140,8 +206,9 @@ rpcs3 --no-gui apps/hello/build/hello.self</code></pre>
 </article>
 <article class="panel" data-panel="why-store" aria-labelledby="h-w2">
   <p class="eyebrow">Why now</p>
-  <h2 id="h-w2" class="stat">July 2027</h2>
+  <h2 id="h-w2" class="stat"><span data-days>…</span> days</h2>
   <p class="lede">The console's digital store stops selling new content worldwide. What's on your drive, including your saves, is what you'll have.</p>
+  <p class="note">Counting down to 1 July 2027; the store stops new purchases by July 2027.</p>
 </article>
 <article class="panel" data-panel="why-cell" aria-labelledby="h-w3">
   <p class="eyebrow">Why now</p>
@@ -165,5 +232,5 @@ rpcs3 --no-gui apps/hello/build/hello.self</code></pre>
   <p class="eyebrow">About</p>
   <h2 id="h-legal">Licence &amp; notice.</h2>
   <p>Necrocell is open source under the MIT licence.</p>
-  <p>Necrocell is an independent project. It is not affiliated with, endorsed or sponsored by Sony Interactive Entertainment. "PlayStation" and "PS3" are trademarks of their owners and are used only to describe compatibility. Game titles belong to their publishers. No game assets are used; all artwork is our own.</p>
+  <p>Necrocell is an independent project. It is not affiliated with, endorsed or sponsored by Sony Interactive Entertainment. "PlayStation" and "PS3" are trademarks of their owners and are used only to describe compatibility. Game titles belong to their publishers. Cover art belongs to the respective publishers and is shown only as homage; everything else is our own work.</p>
 </article>

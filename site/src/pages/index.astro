@@ -1,21 +1,41 @@
 ---
 import Base from "../layouts/Base.astro";
 import Panels from "../components/Panels.astro";
-import { MENU, ICONS } from "../data/menu";
+import games from "../data/games.json";
+import { MENU, ICONS, STATUS_LABEL } from "../data/menu";
+import { slug } from "../lib/art";
+
+const gameBy = new Map(games.map((g) => ["game-" + slug(g.title), g]));
+const apps = MENU.find((c) => c.id === "apps")!.items;
+const building = apps.filter((i) => i.status === "building").length;
+const upNext = apps.filter((i) => i.status === "next").length;
 ---
 <Base>
   <div class="bg" aria-hidden="true"></div>
+  <div class="backdrop" aria-hidden="true"><img alt="" data-bd-layer /><img alt="" data-bd-layer /><div class="bd-shade"></div></div>
   <canvas id="ribbons" aria-hidden="true"></canvas>
 
   <header class="top">
     <span class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS.cell} /></svg>Necrocell</span>
-    <span class="clock" data-clock aria-hidden="true"></span>
+    <span class="countdown" title="The console's digital store stops selling new content by July 2027">
+      <i class="pulse"></i>Store closes in <b data-days>…</b> days
+    </span>
+    <span class="tools">
+      <span class="pad-ind" data-pad-ind hidden title="Controller connected">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS.pad} /></svg>
+      </span>
+      <button class="snd" type="button" data-sound aria-pressed="false" aria-label="Interface sounds">
+        <svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS.sound} /></svg>
+        <svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS.mute} /></svg>
+      </button>
+      <span class="clock" data-clock aria-hidden="true"></span>
+    </span>
   </header>
 
   <nav class="xb" aria-label="Necrocell sections">
     <div class="row">
       {MENU.map((cat, ci) => (
-        <div class="cat" data-ci={ci}>
+        <div class="cat" data-ci={ci} data-cat-id={cat.id}>
           <button class="cat-btn" type="button" data-cat={ci} aria-label={cat.label}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[cat.icon]} /></svg>
             <span class="label">{cat.label}</span>
@@ -23,9 +43,14 @@ import { MENU, ICONS } from "../data/menu";
           <ul class="items">
             {cat.items.map((it) => (
               <li>
-                <button class="item" type="button" data-item={it.id}>
-                  <span class="tile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[it.icon]} /></svg></span>
-                  <span class="txt"><span class="t">{it.title}</span><span class="s">{it.sub}</span></span>
+                <button class="item" type="button" data-item={it.id} data-bd={it.backdrop ?? it.cover} data-bd-full={it.backdrop ? "1" : undefined}>
+                  <span class={it.cover ? "tile cover" : "tile"}>{it.cover
+                    ? <img src={it.cover} alt="" loading="lazy" decoding="async" />
+                    : <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[it.icon]} /></svg>}</span>
+                  <span class="txt">
+                    <span class="t">{it.title}{it.status && <em class={"chip " + it.status}>{STATUS_LABEL[it.status]}</em>}</span>
+                    <span class="s">{it.sub}</span>
+                  </span>
                 </button>
               </li>
             ))}
@@ -35,8 +60,52 @@ import { MENU, ICONS } from "../data/menu";
     </div>
   </nav>
 
+  <aside class="preview" aria-hidden="true">
+    {MENU.flatMap((cat) => cat.items.map((it) => {
+      const p = it.preview;
+      const g = gameBy.get(it.id);
+      return (
+        <div class="pv" data-pv={it.id}>
+          {p?.kind === "screen" && (
+            <figure class="pv-screen">
+              <div class="tv"><canvas data-screen={p.app}></canvas></div>
+              <figcaption>{p.caption}{it.status && <em class={"chip " + it.status}>{STATUS_LABEL[it.status]}</em>}</figcaption>
+            </figure>
+          )}
+          {p?.kind === "cover" && g && (
+            <div class="pv-cover">
+              {it.cover && <img src={it.cover} alt="" loading="lazy" />}
+              <div>
+                <span class="yr">{g.year}</span>
+                <p>{g.why}</p>
+                {g.lost && <p class="lost-mini">Lost: {g.lost.replace(/\s*\((verify[^)]*)\)/i, "")}</p>}
+              </div>
+            </div>
+          )}
+          {p?.kind === "stat" && (
+            <div class="pv-stat">
+              <b data-countdown={p.big === "countdown" ? "" : undefined}>{p.big === "countdown" ? "…" : p.big}</b>
+              <span>{p.small}</span>
+            </div>
+          )}
+          {p?.kind === "code" && (
+            <div class="pv-code"><div class="bar"><i></i><i></i><i></i><span>{p.lang}</span></div><pre>{p.text}</pre></div>
+          )}
+          <p class="pv-hint"><kbd>Enter</kbd> to open</p>
+        </div>
+      );
+    }))}
+  </aside>
+
+  <div class="stats" aria-hidden="true">
+    <span><b>{building}</b> apps in progress</span>
+    <span><b>{upNext}</b> up next</span>
+    <span><b>{games.length}</b> games worth saving</span>
+    <span><b>4</b> steering files</span>
+  </div>
+
   <footer class="hints" aria-hidden="true">
-    <span class="kbd-hints"><kbd>←</kbd><kbd>→</kbd> sections <kbd>↑</kbd><kbd>↓</kbd> items <kbd>Enter</kbd> open <kbd>Esc</kbd> back</span>
+    <span class="kbd-hints"><kbd>←</kbd><kbd>→</kbd> sections <kbd>↑</kbd><kbd>↓</kbd> items <kbd>Enter</kbd> open <kbd>Esc</kbd> back <span class="pad-hint">· controllers work too</span></span>
     <span class="touch-hints">Swipe to browse · tap to open</span>
   </footer>
 
@@ -50,7 +119,7 @@ import { MENU, ICONS } from "../data/menu";
   </div>
 
   <noscript><style>
-    .xb, .hints, #ribbons, .close { display: none !important; }
+    .xb, .hints, #ribbons, .close, .preview, .stats, .backdrop, .tools, .countdown { display: none !important; }
     .sheet { position: static; transform: none; visibility: visible; width: auto; max-width: 760px; margin: 0 auto; background: none; border: 0; }
     .sheet .panel { display: block; margin-bottom: 4rem; }
   </style></noscript>
