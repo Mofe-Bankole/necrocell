@@ -17,3 +17,4 @@ PS3UPDAT*
 .DS_Store
 *.swp
 .env
+.astro/

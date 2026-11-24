@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" fill="#0B0710" rx="4"/>
+  <!-- Ember wave glyph: N letterform with amber accent -->
+  <path d="M6 24 L6 8 L10 8 L20 20 L20 8 L24 8 L24 24 L20 24 L10 12 L10 24 Z" fill="#EDE6DA"/>
+  <!-- Amber underwave -->
+  <path d="M4 26 Q10 22 16 26 Q22 30 28 26 L28 32 L4 32 Z" fill="#FF8C00" opacity="0.7"/>
+</svg>

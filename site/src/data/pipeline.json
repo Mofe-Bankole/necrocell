@@ -1,0 +1,7 @@
+[
+  { "step": "Sentence", "label": "You describe what you want", "durationMs": null },
+  { "step": "Spec", "label": "Kiro writes requirements + design", "durationMs": null },
+  { "step": "Build", "label": "Docker builds the .self / .pkg", "durationMs": null },
+  { "step": "Deploy", "label": "necrocell-mcp pushes to RPCS3 or PS3", "durationMs": null },
+  { "step": "Running", "label": "Running on the TV", "durationMs": null }
+]

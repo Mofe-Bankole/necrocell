@@ -1,0 +1,62 @@
+---
+import Base from "../layouts/Base.astro";
+import Panels from "../components/Panels.astro";
+import { MENU, ICONS } from "../data/menu";
+---
+<Base>
+  <div class="bg" aria-hidden="true"></div>
+  <canvas id="ribbons" aria-hidden="true"></canvas>
+
+  <header class="top">
+    <span class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS.cell} /></svg>Necrocell</span>
+    <span class="clock" data-clock aria-hidden="true"></span>
+  </header>
+
+  <nav class="xb" aria-label="Necrocell sections">
+    <div class="row">
+      {MENU.map((cat, ci) => (
+        <div class="cat" data-ci={ci}>
+          <button class="cat-btn" type="button" data-cat={ci} aria-label={cat.label}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[cat.icon]} /></svg>
+            <span class="label">{cat.label}</span>
+          </button>
+          <ul class="items">
+            {cat.items.map((it) => (
+              <li>
+                <button class="item" type="button" data-item={it.id}>
+                  <span class="tile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[it.icon]} /></svg></span>
+                  <span class="txt"><span class="t">{it.title}</span><span class="s">{it.sub}</span></span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </nav>
+
+  <footer class="hints" aria-hidden="true">
+    <span class="kbd-hints"><kbd>←</kbd><kbd>→</kbd> sections <kbd>↑</kbd><kbd>↓</kbd> items <kbd>Enter</kbd> open <kbd>Esc</kbd> back</span>
+    <span class="touch-hints">Swipe to browse · tap to open</span>
+  </footer>
+
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="Details">
+    <button class="close" type="button" aria-label="Close" data-close>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+    </button>
+    <div class="sheet-body" tabindex="-1">
+      <Panels />
+    </div>
+  </div>
+
+  <noscript><style>
+    .xb, .hints, #ribbons, .close { display: none !important; }
+    .sheet { position: static; transform: none; visibility: visible; width: auto; max-width: 760px; margin: 0 auto; background: none; border: 0; }
+    .sheet .panel { display: block; margin-bottom: 4rem; }
+  </style></noscript>
+
+  <script>
+    import { initDashboard } from "../scripts/dashboard";
+    initDashboard();
+  </script>
+</Base>

@@ -1,0 +1,8 @@
+[
+  {"title":"Resistance: Fall of Man","year":2006,"developer":"Insomniac Games","why":"A launch title that showed the PS3 at its debut. It's also the disc that failed in our founder's console, the reason Vitals exists.","verify":true},
+  {"title":"LittleBigPlanet","year":2008,"developer":"Media Molecule","why":"'Play, Create, Share' brought user-made levels to the console mainstream; millions of player creations lived online.","lost":"PS3 online servers were shut down (verify date)","verify":true},
+  {"title":"Metal Gear Solid 4: Guns of the Patriots","year":2008,"developer":"Kojima Productions","why":"A PS3 exclusive that leaned on Blu-ray capacity and the Cell for a cinematic finale to a landmark series.","verify":true},
+  {"title":"Demon's Souls","year":2009,"developer":"FromSoftware","why":"Started the 'soulslike' genre and its asynchronous online messages, leading to Dark Souls and Elden Ring.","lost":"Original PS3 online servers shut down in 2018 (verify)","verify":true},
+  {"title":"Journey","year":2012,"developer":"thatgamecompany","why":"A short, wordless game that proved games could be art, and a PSN indie milestone.","verify":true},
+  {"title":"The Last of Us","year":2013,"developer":"Naughty Dog","why":"A late-generation peak, showing what studios that mastered the Cell could achieve.","verify":true}
+]

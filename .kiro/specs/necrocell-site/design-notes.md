@@ -1,0 +1,21 @@
+# Design notes to give Kiro (not committed as-is)
+- **Stack:** Astro (current stable), static output, `site/` as the project root. Islands are vanilla TS (or Preact only if a demo truly needs it). Charts: hand-rolled SVG, since they are tiny with no chart library.
+- **Look:**
+  - Near-black `#0B0710` background.
+  - Ember amber `#FF8C00` and violet `#2A0A3A` / `#7B3FA0`.
+  - Bone-white text `#EDE6DA`.
+  - Headings: a geometric or serif OFL font. Code: a mono OFL font with a subtle CRT glow.
+  - Premium dev-tool feel, not a cheesy Halloween look. One spooky motif only: the ember wave.
+- **Structure:**
+  - `src/pages/index.astro`
+  - `src/components/{Hero,WhyNow,Pipeline,Bench,VitalsDemo,ArkDemo,WorthSaving,MadeWith,UnderTheHood,GetStarted,Footer}.astro`
+  - `src/data/*.json`
+  - `src/lib/wave.ts`, shared with the console maths
+- **Under the hood:** use Astro's `import.meta.glob` / fs at build time to read `../.kiro/**`.
+- **Deploy:** `withastro/action` + `actions/deploy-pages`. Set `site` and `base` for the `/necrocell` path.
+- **Kiro hooks to add:**
+  - On change to `site/src/data/*.json`, validate it against a zod schema.
+  - On change to `bench/results/*`, regenerate `bench.json`.
+- **Property tests (fast-check):**
+  - the games.json and bench.json schemas
+  - the wave function stays bounded within the canvas for any time/size

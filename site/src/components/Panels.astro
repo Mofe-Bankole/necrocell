@@ -1,0 +1,169 @@
+---
+import fs from "node:fs";
+import path from "node:path";
+import games from "../data/games.json";
+import { emberArt, slug } from "../lib/art";
+
+const repo = "https://github.com/Mofe-Bankole/necrocell";
+const kiroDir = path.resolve(process.cwd(), "../.kiro");
+const read = (p: string) => { try { return fs.readFileSync(path.join(kiroDir, p), "utf8"); } catch { return ""; } };
+const steering = ["product.md", "ps3-platform.md", "build-deploy.md", "trademark-safe.md"]
+  .map((f) => ({ f, body: read("steering/" + f).split("\n").slice(0, 28).join("\n") }))
+  .filter((s) => s.body);
+const specs = (() => { try { return fs.readdirSync(path.join(kiroDir, "specs")); } catch { return []; } })();
+---
+<!-- Necrocell -->
+<article class="panel" data-panel="raise" aria-labelledby="h-raise">
+  <p class="eyebrow">Necrocell · Kiroween 2026</p>
+  <h2 id="h-raise" class="display">Raise the dead.</h2>
+  <p class="lede">A Kiro-native kit for building homebrew apps on a 2006 console, and two apps raised from it. Describe an app in one sentence; Kiro writes the spec, builds it in Docker and deploys it to the TV.</p>
+  <div class="pillars">
+    <div><span class="k">01</span><h3>Template</h3><p>A small C skeleton: app loop, controller input, logging and <code>nc_gfx</code> drawing with a GPU backend and a Linux backend for fast testing.</p></div>
+    <div><span class="k">02</span><h3>.kiro</h3><p>Steering, specs and hooks that hold Kiro to the platform's real APIs: big-endian data, no invented functions, clean exits.</p></div>
+    <div><span class="k">03</span><h3>necrocell-mcp</h3><p>Tools Kiro calls to build, package, deploy, launch and read live logs from the console.</p></div>
+  </div>
+  <div class="actions">
+    <a class="btn primary" href={repo}>View on GitHub</a>
+    <span class="btn ghost" aria-disabled="true">Demo video · Dec 4</span>
+  </div>
+</article>
+
+<article class="panel" data-panel="pipeline" aria-labelledby="h-pipe">
+  <p class="eyebrow">How it works</p>
+  <h2 id="h-pipe">Sentence to screen.</h2>
+  <ol class="steps">
+    <li><b>You describe it.</b><span>"Show the fan speed as a ring that turns red when it's hot."</span></li>
+    <li><b>Kiro writes the spec.</b><span>Requirements, design and tasks, guided by Necrocell's steering.</span></li>
+    <li><b>It builds.</b><span>The C template compiles inside the PSL1GHT toolchain container.</span></li>
+    <li><b>It deploys.</b><span>necrocell-mcp packages the app and sends it to the console over the LAN.</span></li>
+    <li><b>It runs on the TV.</b><span>Logs stream back to Kiro, so it can fix what broke.</span></li>
+  </ol>
+  <p class="note">Measured timings for each step will be published with our benchmark.</p>
+</article>
+
+<article class="panel" data-panel="hood" aria-labelledby="h-hood">
+  <p class="eyebrow">Under the hood</p>
+  <h2 id="h-hood">The rules Kiro follows.</h2>
+  <p>These are read straight from the repo's <code>.kiro/</code> folder when the site builds, so they never go stale.</p>
+  {steering.map((s, i) => (
+    <details open={i === 0}><summary><code>.kiro/steering/{s.f}</code></summary><pre><code>{s.body}</code></pre></details>
+  ))}
+  {specs.length > 0 && <p class="note">Specs: {specs.map((s) => <code>{s}</code>)}</p>}
+</article>
+
+<article class="panel" data-panel="start" aria-labelledby="h-start">
+  <p class="eyebrow">Get started</p>
+  <h2 id="h-start">Four commands.</h2>
+  <pre class="term"><code><i># 1. get the kit</i>
+git clone {repo}
+cd necrocell
+<i># 2. build the hello app in the toolchain container</i>
+docker run --rm -u $(id -u):$(id -g) -v $PWD:/src -w /src/apps/hello hldtux/ps3dev make
+<i># 3. or test it on Linux first</i>
+make -C apps/hello -f Makefile.sdl run
+<i># 4. run it in the RPCS3 emulator</i>
+rpcs3 --no-gui apps/hello/build/hello.self</code></pre>
+  <p class="note">The template is being built this week; paths may still change. RPCS3 needs the console's system software: download it only from <a href="https://www.playstation.com/en-us/support/hardware/ps3/system-software/">Sony's official page</a>. We never ship it.</p>
+</article>
+
+<!-- Vitals -->
+<article class="panel" data-panel="vitals-live" aria-labelledby="h-vl">
+  <p class="eyebrow">App 1 · Vitals</p>
+  <h2 id="h-vl">Temperature &amp; fan.</h2>
+  <p>Old consoles die of heat: dried thermal paste, dusty fans. Vitals shows the CPU and GPU temperatures and fan speed, and warns you before it's too late.</p>
+  <div class="vitals" data-vitals>
+    <div class="readouts">
+      <div class="ro"><span>CPU</span><b data-v="cpu">--</b><em>°C</em></div>
+      <div class="ro"><span>GPU</span><b data-v="gpu">--</b><em>°C</em></div>
+      <div class="ro"><span>Fan</span><b data-v="fan">--</b><em>%</em></div>
+    </div>
+    <canvas class="spark" width="560" height="140" aria-label="Temperature history graph"></canvas>
+    <p class="status" data-v="status" role="status">Warming up…</p>
+  </div>
+  <p class="tag">Simulated readings. A recording from real hardware replaces this once our console is back from repair.</p>
+</article>
+
+<article class="panel" data-panel="vitals-how" aria-labelledby="h-vh">
+  <p class="eyebrow">App 1 · Vitals</p>
+  <h2 id="h-vh">How it reads sensors.</h2>
+  <ul class="list">
+    <li><b>First choice:</b> read the temperatures directly on the console through a system call available on homebrew-enabled firmware.</li>
+    <li><b>Fallback:</b> ask webMAN MOD's local web interface, which many homebrew users already run.</li>
+    <li><b>Never:</b> change fan curves or firmware settings. Vitals only reads.</li>
+  </ul>
+</article>
+
+<!-- Ark -->
+<article class="panel" data-panel="ark-backup" aria-labelledby="h-ab">
+  <p class="eyebrow">App 2 · Ark</p>
+  <h2 id="h-ab">Back up your saves.</h2>
+  <p>Hard drives in these consoles are 15+ years old. Ark copies your own save files to your PC over Wi-Fi, so a dead drive doesn't take years of progress with it.</p>
+  <div class="ark" data-ark>
+    <ul>
+      {["Campaign save · Chapter 7", "Profile & settings", "Creative levels (12)", "Second playthrough", "Arcade high scores"].map((s, i) => (
+        <li data-ark-row><span class="nm">{s}</span><span class="sz">{[2.1, 0.3, 18.4, 2.2, 0.1][i]} MB</span><span class="st">At risk</span><i class="bar"></i></li>
+      ))}
+    </ul>
+    <button class="btn primary" type="button" data-ark-go>Back up all</button>
+  </div>
+  <p class="tag">Simulated. The real app runs on the console and sends to a small receiver on your PC.</p>
+</article>
+
+<article class="panel" data-panel="ark-limit" aria-labelledby="h-al">
+  <p class="eyebrow">App 2 · Ark</p>
+  <h2 id="h-al">What Ark won't do.</h2>
+  <ul class="list">
+    <li>It backs up <b>your own saves</b>, from <b>your own console and account</b>.</li>
+    <li>It does <b>not</b> copy games, unlock protected saves, or move saves between accounts.</li>
+    <li>Some saves are copy-protected by their games. Ark tells you which ones, instead of pretending.</li>
+  </ul>
+</article>
+
+<!-- Worth saving -->
+{games.map((g) => (
+  <article class="panel game" data-panel={"game-" + slug(g.title)} aria-labelledby={"h-" + slug(g.title)}>
+    <div class="art" set:html={emberArt(g.title)} />
+    <p class="eyebrow">Worth saving · {g.year}</p>
+    <h2 id={"h-" + slug(g.title)}>{g.title}</h2>
+    <p class="meta">{g.developer}</p>
+    <p class="lede">{g.why}</p>
+    {g.lost && <p class="lost"><b>Already lost:</b> {g.lost.replace(/\s*\((verify[^)]*)\)/i, "")}</p>}
+    <p class="note">Necrocell keeps the hardware alive and your saves safe. Artwork is our own, generated from the title.</p>
+  </article>
+))}
+
+<!-- Why now -->
+<article class="panel" data-panel="why-87m" aria-labelledby="h-w1">
+  <p class="eyebrow">Why now</p>
+  <h2 id="h-w1" class="stat">~87M</h2>
+  <p class="lede">Roughly 87 million consoles were sold between 2006 and 2017. Many still work, and every one of them is aging: drives, fans and thermal paste wear out.</p>
+</article>
+<article class="panel" data-panel="why-store" aria-labelledby="h-w2">
+  <p class="eyebrow">Why now</p>
+  <h2 id="h-w2" class="stat">July 2027</h2>
+  <p class="lede">The console's digital store stops selling new content worldwide. What's on your drive, including your saves, is what you'll have.</p>
+</article>
+<article class="panel" data-panel="why-cell" aria-labelledby="h-w3">
+  <p class="eyebrow">Why now</p>
+  <h2 id="h-w3" class="stat">1 + 8</h2>
+  <p class="lede">The Cell processor: one PowerPC core and eight vector units (seven enabled, six for apps). It's powerful, unusual and big-endian, and AI coding tools routinely invent functions for it that don't exist. Necrocell's steering exists to stop that.</p>
+</article>
+<article class="panel" data-panel="why-us" aria-labelledby="h-w4">
+  <p class="eyebrow">Why we care</p>
+  <h2 id="h-w4">Bought in its final year.</h2>
+  <p class="lede">"My father bought me this console in 2017, the year production ended. One disc later failed, and the console needs repair now. This project is how we keep consoles like it alive." <span class="by">— Mofe</span></p>
+</article>
+
+<!-- About -->
+<article class="panel" data-panel="team" aria-labelledby="h-team">
+  <p class="eyebrow">About</p>
+  <h2 id="h-team">The crew.</h2>
+  <p class="lede">Built for Kiroween 2026 by Mofe Bankole and Steven, in Kiro, with specs, steering and hooks in the open.</p>
+  <div class="actions"><a class="btn primary" href={repo}>Source on GitHub</a></div>
+</article>
+<article class="panel" data-panel="legal" aria-labelledby="h-legal">
+  <p class="eyebrow">About</p>
+  <h2 id="h-legal">Licence &amp; notice.</h2>
+  <p>Necrocell is open source under the MIT licence.</p>
+  <p>Necrocell is an independent project. It is not affiliated with, endorsed or sponsored by Sony Interactive Entertainment. "PlayStation" and "PS3" are trademarks of their owners and are used only to describe compatibility. Game titles belong to their publishers. No game assets are used; all artwork is our own.</p>
+</article>
