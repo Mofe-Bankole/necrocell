@@ -34,3 +34,4 @@ Twenty low-resolution covers taken from their English Wikipedia articles (non-fr
 
 ## Game backdrops (site/public/backdrops/) — third-party, optional
 Full-screen 16:9 images (ideally 1920×1080) shown behind the dashboard when a game is selected, and in that game's panel. Same `SHOW_COVERS` switch and same disqualification caveat as the covers. Record each file's source below when added.
+Source for the 18 current backdrops: the "Sony PlayStation 3 (Backgrounds)(ReDump)(EM 1.0)" collection (the console's own per-game background images), resized from 2560×1440 to 1920×1080 WebP. Flower and Tokyo Jungle were digital-only, so they fall back to their covers.
