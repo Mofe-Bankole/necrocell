@@ -1,0 +1,10 @@
+# apps/hello/Makefile.sdl — Build the hello sample with the SDL2 backend.
+#
+# Usage (from this directory):
+#   make -f Makefile.sdl          — build build/hello
+#   make -f Makefile.sdl clean    — remove build/
+
+TARGET  := hello
+APPDIR  := .
+
+include ../../Makefile.sdl

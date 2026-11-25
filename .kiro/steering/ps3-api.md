@@ -93,8 +93,21 @@ s32 pngLoadFromBuffer(const void *buffer, u32 size, pngData *out);
 ```c
 s32 netInitialize();
 s32 netDeinitialize();
-int socket(int domain, int type, int protocol);  /* BSD-style: sendto/close also available */
+int socket(int domain, int type, int protocol);
+ssize_t sendto(int socket, const void* message, size_t length, int flags, const struct sockaddr* dest_addr, socklen_t dest_len);
+/* net/socket.h: MSG_DONTWAIT 0x0080, SO_NBIO 0x1100 (verified 2026-11-25) */
 ```
+
+## Wall clock (`#include <sys/systime.h>`)
+```c
+s32 sysGetCurrentTime(u64 *sec, u64 *nsec);   /* seconds since 1970, UTC. Timezone source not verified yet. */
+```
+
+## Build rules (`$(PS3DEV)/ppu_rules`, verified 2026-11-25)
+Built-in rules `%.self: %.elf` and `%.pkg: %.self`. Variables: `TITLE`, `APPID`, `CONTENTID`, `ICON0`, `SFOXML` (default `$(PS3DEV)/bin/sfo.xml`), `PKGFILES`. Tools in `$(PS3DEV)/bin`: `fself`, `pkg`, `sfo`. Don't hand-roll these.
+
+## Not in the image
+The tiny3d **samples** (and their font data) are not installed in `hldtux/ps3dev`. Use the vendored `template/assets/font8x8_basic.h` (public domain), never sample fonts.
 
 ## UDP debug logging (`#include <debugnet.h>`, port lib)
 ```c

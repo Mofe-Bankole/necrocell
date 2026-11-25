@@ -2,6 +2,13 @@
 
 All new assets must be listed here with source and licence, per `trademark-safe.md`.
 
+## Template assets (template/assets/)
+
+| Asset | Source | Licence |
+|---|---|---|
+| `font8x8_basic.h` | [dhepper/font8x8](https://github.com/dhepper/font8x8), Daniel Hepper | Public Domain |
+| `JetBrainsMono-Regular.ttf` | [JetBrains/JetBrainsMono](https://github.com/JetBrains/JetBrainsMono) v2.x | SIL OFL 1.1 (licence: `JetBrainsMono-OFL.txt`) |
+
 ## Fonts (site/)
 
 | Font | Weight(s) | Source | Licence |

@@ -1,0 +1,75 @@
+# Makefile.sdl — SDL2 desktop build for the Necrocell template.
+#
+# Variables (set by the app's Makefile.sdl before including this file):
+#   TARGET  — output binary name (e.g. hello)
+#   APPDIR  — path to the app directory (the one containing src/ and assets/).
+#              Relative to this file's directory, or absolute.
+#
+# Output: build/$(TARGET)
+#
+# Usage:
+#   make -f Makefile.sdl              — build with defaults
+#   make -f Makefile.sdl TARGET=foo APPDIR=apps/foo
+#   make -f Makefile.sdl clean
+
+TARGET  ?= app
+APPDIR  ?= .
+
+# Locate this Makefile's own directory so includes resolve correctly when
+# the user runs make from a different working directory.
+TEMPLATE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+PKG_CONFIG_PATH := $(HOME)/.local/lib/pkgconfig:$(PKG_CONFIG_PATH)
+export PKG_CONFIG_PATH
+
+CC      := cc
+
+# SDL2_ttf and SDL2_image are built into $(HOME)/.local.  We add
+# $(HOME)/.local/include first so <SDL2/SDL_ttf.h> and <SDL2/SDL_image.h>
+# resolve to the locally-built versions before any system SDL2 include path
+# that pkg-config might inject.
+LOCAL_INC := $(HOME)/.local/include
+LOCAL_LIB := $(HOME)/.local/lib
+
+CFLAGS  := -std=c11 -Wall -Wextra -Werror \
+           -I$(TEMPLATE_DIR)include \
+           -I$(TEMPLATE_DIR)src \
+           -I$(LOCAL_INC) \
+           $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags sdl2 SDL2_ttf SDL2_image) \
+           -D_GNU_SOURCE \
+           -DNC_ASSET_DIR='"$(TEMPLATE_DIR)assets/"'
+LDFLAGS := -L$(LOCAL_LIB) \
+           $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs sdl2 SDL2_ttf SDL2_image) \
+           -lm
+RPATH   := -Wl,-rpath,$(LOCAL_LIB)
+
+# Source files: template core + SDL backend + app
+SRCS := \
+    $(TEMPLATE_DIR)src/main.c \
+    $(TEMPLATE_DIR)src/log.c \
+    $(TEMPLATE_DIR)backends/sdl/sys_sdl.c \
+    $(TEMPLATE_DIR)backends/sdl/input_kbd.c \
+    $(TEMPLATE_DIR)backends/sdl/gfx_sdl.c \
+    $(TEMPLATE_DIR)backends/sdl/net_sdl.c \
+    $(APPDIR)/src/$(TARGET).c
+
+OBJS := $(patsubst %.c, build/%.o, $(notdir $(SRCS)))
+
+.PHONY: all clean
+
+all: build/$(TARGET)
+
+build/$(TARGET): $(OBJS)
+	@mkdir -p build
+	$(CC) -o $@ $^ $(LDFLAGS) $(RPATH)
+
+# Pattern rule: compile any .c → build/<base>.o
+# VPATH lets make find .c files by basename.
+VPATH := $(sort $(dir $(SRCS)))
+
+build/%.o: %.c
+	@mkdir -p build
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	rm -rf build
